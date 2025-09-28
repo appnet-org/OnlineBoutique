@@ -1,8 +1,8 @@
-module github.com/deskchen/online-boutique-grpc
+module github.com/appnetorg/OnlineBoutique
 
 go 1.23.9
 
-replace github.com/deskchen/online-boutique-grpc/services => ./services
+replace github.com/appnetorg/OnlineBoutique/services => ./services
 
 require (
 	github.com/go-playground/validator/v10 v10.24.0

@@ -7,7 +7,7 @@ import (
 	"math/rand"
 	"net"
 
-	pb "github.com/deskchen/online-boutique-grpc/protos/onlineboutique"
+	pb "github.com/appnetorg/OnlineBoutique/protos/onlineboutique"
 	"github.com/grpc-ecosystem/grpc-opentracing/go/otgrpc"
 	"github.com/opentracing/opentracing-go"
 	"google.golang.org/grpc"

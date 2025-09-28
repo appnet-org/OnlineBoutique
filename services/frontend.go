@@ -12,8 +12,8 @@ import (
 	"strings"
 	"time"
 
-	pb "github.com/deskchen/online-boutique-grpc/protos/onlineboutique"
-	"github.com/deskchen/online-boutique-grpc/services/validator"
+	pb "github.com/appnetorg/OnlineBoutique/protos/onlineboutique"
+	"github.com/appnetorg/OnlineBoutique/services/validator"
 	"github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/ext"
 

@@ -12,7 +12,7 @@ import (
 	"github.com/redis/go-redis/v9"
 	"google.golang.org/grpc"
 
-	pb "github.com/deskchen/online-boutique-grpc/protos/onlineboutique"
+	pb "github.com/appnetorg/OnlineBoutique/protos/onlineboutique"
 )
 
 // NewCartService returns a new server for the CartService

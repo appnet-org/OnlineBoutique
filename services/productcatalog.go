@@ -17,7 +17,7 @@ import (
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/encoding/protojson"
 
-	pb "github.com/deskchen/online-boutique-grpc/protos/onlineboutique"
+	pb "github.com/appnetorg/OnlineBoutique/protos/onlineboutique"
 	"github.com/grpc-ecosystem/grpc-opentracing/go/otgrpc"
 	"github.com/opentracing/opentracing-go"
 )

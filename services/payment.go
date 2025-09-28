@@ -13,7 +13,7 @@ import (
 	"github.com/opentracing/opentracing-go"
 	"google.golang.org/grpc"
 
-	pb "github.com/deskchen/online-boutique-grpc/protos/onlineboutique"
+	pb "github.com/appnetorg/OnlineBoutique/protos/onlineboutique"
 )
 
 type InvalidCreditCardErr struct{}

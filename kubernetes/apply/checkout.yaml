@@ -42,7 +42,7 @@ spec:
       serviceAccountName: onlineboutique-checkout
       containers:
       - name: checkout
-        image: deskchen/onlineboutique-grpc:latest
+        image: appnetorg/onlineboutique-grpc:latest
         command: ["/app/onlineboutique"]
         args: ["checkout"]
         imagePullPolicy: Always
