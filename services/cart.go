@@ -7,6 +7,8 @@ import (
 	"log"
 	"net"
 
+	"github.com/grpc-ecosystem/grpc-opentracing/go/otgrpc"
+	"github.com/opentracing/opentracing-go"
 	"github.com/redis/go-redis/v9"
 	"google.golang.org/grpc"
 
@@ -38,7 +40,11 @@ func (s *CartService) Run() error {
 		Addr: s.cartRedisAddr,
 	})
 
-	srv := grpc.NewServer()
+	opts := []grpc.ServerOption{
+		grpc.UnaryInterceptor(otgrpc.OpenTracingServerInterceptor(opentracing.GlobalTracer())),
+	}
+
+	srv := grpc.NewServer(opts...)
 	pb.RegisterCartServiceServer(srv, s)
 
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", s.port))

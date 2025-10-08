@@ -9,6 +9,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/grpc-ecosystem/grpc-opentracing/go/otgrpc"
+	"github.com/opentracing/opentracing-go"
 	"google.golang.org/grpc"
 
 	pb "github.com/appnetorg/OnlineBoutique/protos/onlineboutique"
@@ -84,7 +86,10 @@ type PaymentService struct {
 
 // Run starts the server
 func (s *PaymentService) Run() error {
-	srv := grpc.NewServer()
+	opts := []grpc.ServerOption{
+		grpc.UnaryInterceptor(otgrpc.OpenTracingServerInterceptor(opentracing.GlobalTracer())),
+	}
+	srv := grpc.NewServer(opts...)
 	pb.RegisterPaymentServiceServer(srv, s)
 
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", s.port))

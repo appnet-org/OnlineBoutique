@@ -11,6 +11,8 @@ import (
 	"google.golang.org/grpc"
 
 	pb "github.com/appnetorg/OnlineBoutique/protos/onlineboutique"
+	"github.com/grpc-ecosystem/grpc-opentracing/go/otgrpc"
+	"github.com/opentracing/opentracing-go"
 )
 
 // NewShippingService returns a new server for the ShippingService
@@ -30,7 +32,10 @@ type ShippingService struct {
 
 // Run starts the server
 func (s *ShippingService) Run() error {
-	srv := grpc.NewServer()
+	opts := []grpc.ServerOption{
+		grpc.UnaryInterceptor(otgrpc.OpenTracingServerInterceptor(opentracing.GlobalTracer())),
+	}
+	srv := grpc.NewServer(opts...)
 	pb.RegisterShippingServiceServer(srv, s)
 
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", s.port))
@@ -97,7 +102,7 @@ type quote struct {
 }
 
 // createQuoteFromCount generates a shipping quote based on item count.
-func createQuoteFromCount(count int) quote {
+func createQuoteFromCount(_ int) quote {
 	return createQuoteFromFloat(8.99) // Example static rate
 }
 

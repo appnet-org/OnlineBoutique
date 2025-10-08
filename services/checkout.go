@@ -13,6 +13,8 @@ import (
 
 	pb "github.com/appnetorg/OnlineBoutique/protos/onlineboutique"
 	"github.com/google/uuid"
+	"github.com/grpc-ecosystem/grpc-opentracing/go/otgrpc"
+	"github.com/opentracing/opentracing-go"
 	"github.com/pkg/errors"
 )
 
@@ -82,7 +84,10 @@ func (cs *CheckoutService) Run() error {
 	mustConnGRPC(ctx, &cs.emailSvcConn, cs.emailSvcAddr)
 	mustConnGRPC(ctx, &cs.paymentSvcConn, cs.paymentSvcAddr)
 
-	srv := grpc.NewServer()
+	opts := []grpc.ServerOption{
+		grpc.UnaryInterceptor(otgrpc.OpenTracingServerInterceptor(opentracing.GlobalTracer())),
+	}
+	srv := grpc.NewServer(opts...)
 	pb.RegisterCheckoutServiceServer(srv, cs)
 
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", cs.port))

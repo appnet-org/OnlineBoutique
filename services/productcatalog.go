@@ -18,6 +18,8 @@ import (
 	"google.golang.org/protobuf/encoding/protojson"
 
 	pb "github.com/appnetorg/OnlineBoutique/protos/onlineboutique"
+	"github.com/grpc-ecosystem/grpc-opentracing/go/otgrpc"
+	"github.com/opentracing/opentracing-go"
 )
 
 // ProductCatalogService implements the ProductCatalogService
@@ -51,12 +53,13 @@ func NewProductCatalogService(port int) *ProductCatalogService {
 	go func() {
 		for {
 			sig := <-sigs
-			if sig == syscall.SIGUSR1 {
+			switch sig {
+			case syscall.SIGUSR1:
 				log.Println("Enabling catalog reload")
 				svc.mu.Lock()
 				svc.reloadCatalog = true
 				svc.mu.Unlock()
-			} else if sig == syscall.SIGUSR2 {
+			case syscall.SIGUSR2:
 				log.Println("Disabling catalog reload")
 				svc.mu.Lock()
 				svc.reloadCatalog = false
@@ -106,7 +109,10 @@ func (s *ProductCatalogService) parseCatalog() []*pb.Product {
 
 // Run starts the gRPC server
 func (s *ProductCatalogService) Run() error {
-	srv := grpc.NewServer()
+	opts := []grpc.ServerOption{
+		grpc.UnaryInterceptor(otgrpc.OpenTracingServerInterceptor(opentracing.GlobalTracer())),
+	}
+	srv := grpc.NewServer(opts...)
 	pb.RegisterProductCatalogServiceServer(srv, s)
 
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", s.port))

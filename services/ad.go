@@ -7,9 +7,10 @@ import (
 	"math/rand"
 	"net"
 
-	"google.golang.org/grpc"
-
 	pb "github.com/appnetorg/OnlineBoutique/protos/onlineboutique"
+	"github.com/grpc-ecosystem/grpc-opentracing/go/otgrpc"
+	"github.com/opentracing/opentracing-go"
+	"google.golang.org/grpc"
 )
 
 const (
@@ -33,7 +34,9 @@ type AdService struct {
 
 // Run starts the server
 func (s *AdService) Run() error {
-	opts := []grpc.ServerOption{}
+	opts := []grpc.ServerOption{
+		grpc.UnaryInterceptor(otgrpc.OpenTracingServerInterceptor(opentracing.GlobalTracer())),
+	}
 	srv := grpc.NewServer(opts...)
 	pb.RegisterAdServiceServer(srv, s)
 
