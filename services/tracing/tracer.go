@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	defaultSampleRatio float64 = 1
+	defaultSampleRatio float64 = 0.02 // 2% sampling
 )
 
 // Init returns a newly configured tracer and closer
