@@ -1,0 +1,109 @@
+##################################################################################################
+# recommendation service and deployment
+##################################################################################################
+apiVersion: v1
+kind: Service
+metadata:
+  name: recommendation
+  labels:
+    app: recommendation
+    service: recommendation
+spec:
+  ports:
+  - port: 8088
+    targetPort: 8088
+    name: grpc
+  selector:
+    app: recommendation
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: onlineboutique-recommendation
+  labels:
+    account: recommendation
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: recommendation
+  labels:
+    app: recommendation
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: recommendation
+  template:
+    metadata:
+      labels:
+        app: recommendation
+    spec:
+      serviceAccountName: onlineboutique-recommendation
+      containers:
+      - name: recommendation
+        image: appnetorg/onlineboutique-grpc:latest
+        command: ["/app/onlineboutique"]
+        args: ["recommendation"]
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8088
+        env:
+        - name: LOG_LEVEL
+          value: info
+      - name: symphony-proxy
+        image: appnetorg/symphony-proxy-h2:latest
+        command:
+        - /app/proxy
+        securityContext:
+          runAsUser: 1337
+          capabilities:
+            add:
+            - NET_ADMIN
+            - NET_RAW
+        env:
+        - name: LOG_LEVEL
+          value: info
+        - name: ENABLE_PACKET_BUFFERING
+          value: "true"
+      initContainers:
+      - name: set-iptables
+        image: appnetorg/symphony-proxy-h2-init-container-grpc:latest
+        command:
+        - /bin/sh
+        - -c
+        - bash /apply_symphony_iptables.sh
+        securityContext:
+          runAsUser: 0
+          capabilities:
+            add:
+            - NET_ADMIN
+---
+# volume and persistent volume claim of `recommendation`
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: recommendation-pv
+spec:
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  capacity:
+    storage: 1Gi
+  storageClassName: recommendation-storage
+  hostPath:
+    path: /data/volumes/recommendation-pv
+    type: DirectoryOrCreate
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: recommendation-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: recommendation-storage
+  resources:
+    requests:
+      storage: 1Gi
+---

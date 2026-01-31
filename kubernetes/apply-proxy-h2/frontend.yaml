@@ -1,0 +1,109 @@
+##################################################################################################
+# frontend service and deployment
+##################################################################################################
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend
+  labels:
+    app: frontend
+spec:
+  clusterIP: 10.96.88.88
+  ports:
+  - name: frontend
+    port: 80
+    targetPort: 8080
+  selector:
+    app: frontend
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: onlineboutique-frontend
+  labels:
+    account: frontend
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  labels:
+    app: frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      serviceAccountName: onlineboutique-frontend
+      containers:
+      - name: frontend
+        image: appnetorg/onlineboutique-grpc:latest
+        command: ["/app/onlineboutique"]
+        args: ["frontend"]
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+        env:
+        - name: LOG_LEVEL
+          value: info
+      - name: symphony-proxy
+        image: appnetorg/symphony-proxy-h2:latest
+        command:
+        - /app/proxy
+        securityContext:
+          runAsUser: 1337
+          capabilities:
+            add:
+            - NET_ADMIN
+            - NET_RAW
+        env:
+        - name: LOG_LEVEL
+          value: info
+        - name: ENABLE_PACKET_BUFFERING
+          value: "true"
+      initContainers:
+      - name: set-iptables
+        image: appnetorg/symphony-proxy-h2-init-container-grpc:latest
+        command:
+        - /bin/sh
+        - -c
+        - bash /apply_symphony_iptables.sh
+        securityContext:
+          runAsUser: 0
+          capabilities:
+            add:
+            - NET_ADMIN
+---
+# volume and persistent volume claim of `frontend`
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: frontend-pv
+spec:
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  capacity:
+    storage: 1Gi
+  storageClassName: frontend-storage
+  hostPath:
+    path: /data/volumes/frontend-pv
+    type: DirectoryOrCreate
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: frontend-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: frontend-storage
+  resources:
+    requests:
+      storage: 1Gi
+---
